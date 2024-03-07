@@ -133,7 +133,14 @@ func (r PlacementAPISpec) ValidateUpdate(old PlacementAPISpec, basePath *field.P
 	return r.ValidateDefaultConfigOverwrite(basePath)
 }
 
-func (r PlacementAPISpec) ValidateDefaultConfigOverwrite(
+func (r PlacementAPISpecCore) ValidateCreate(basePath *field.Path) field.ErrorList {
+	return r.ValidateDefaultConfigOverwrite(basePath)
+}
+
+func (r PlacementAPISpecCore) ValidateUpdate(old PlacementAPISpec, basePath *field.Path) field.ErrorList {
+	return r.ValidateDefaultConfigOverwrite(basePath)
+}
+func (r PlacementAPISpecCore) ValidateDefaultConfigOverwrite(
 	basePath *field.Path,
 ) field.ErrorList {
 	var errors field.ErrorList
