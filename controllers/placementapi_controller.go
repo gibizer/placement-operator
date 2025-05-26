@@ -19,8 +19,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -445,7 +447,12 @@ func (r *PlacementAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return result, err
 	}
 
+	Log.Info("XXX delay ensureServiceExposed")
+	time.Sleep(60 * time.Second)
+	Log.Info("XXX continue ensureServiceExposed")
+
 	apiEndpoints, result, err := r.ensureServiceExposed(ctx, h, instance)
+	Log.Info("XXX after ensureServiceExposed", "apiEndpoints", apiEndpoints)
 
 	if (err != nil || result != ctrl.Result{}) {
 		// We can ignore RequeueAfter as we are watching the Service resource
@@ -468,6 +475,7 @@ func (r *PlacementAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		Log.Info("Waiting for the Deployment to become Ready before exposing the sevice in Keystone")
 		return ctrl.Result{}, nil
 	}
+
 	err = r.ensureKeystoneServiceUser(ctx, h, instance)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -692,6 +700,16 @@ func (r *PlacementAPIReconciler) ensureKeystoneEndpoint(
 	instance *placementv1.PlacementAPI,
 	apiEndpoints map[string]string,
 ) (ctrl.Result, error) {
+	Log := r.GetLogger(ctx)
+	Log.Info("XXX ensureKeystoneEndpoint", "endpoints", apiEndpoints)
+	for _, url := range maps.Values(apiEndpoints) {
+		if strings.Contains(url, "https") {
+			Log.Info("XXX Delaying switching to https endpoints")
+			time.Sleep(60 * time.Second)
+			Log.Info("XXX Continue switching to https endpoints")
+			break
+		}
+	}
 	ksEndptSpec := keystonev1.KeystoneEndpointSpec{
 		ServiceName: placement.ServiceName,
 		Endpoints:   apiEndpoints,
